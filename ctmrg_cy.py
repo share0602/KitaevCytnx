@@ -20,6 +20,7 @@ def sort_label(A):
         raise ValueError('A.labels() is not equal list(np.sort(label))')
 
 def create_w_imp_cns_tms(ten_a, ten_b, l_three_dir):
+    'Create weight, impurity, cns, and tms with the imput ten_a, ten_b, l_three_dir'
     D = l_three_dir[0].shape()[0]
     for i in ('weight', 'impurity'):
         ## Clone and prepare the tesnors needed for contraction
@@ -86,6 +87,9 @@ def create_w_imp_cns_tms(ten_a, ten_b, l_three_dir):
             #weight_imp.reshape_(D**2, D**2, D**2, D**2)
         w = weight.get_block().numpy()
         # print(w.shape)
+        # Here we use np.einsum() to calculate cns and tms, for cytnx doesn't support contraction 
+        # itself. An alternative is using cytnx.linalg.Trace(); however, it is still not that 
+        # convenient
         dy = dz = w.shape[0]
         c1 = w.reshape((dy, dy, dz * dz, dy * dy, dz, dz))
         c1 = np.einsum('i i j k l l->j k', c1)
@@ -111,6 +115,7 @@ def create_w_imp_cns_tms(ten_a, ten_b, l_three_dir):
     return weight, weight_imp, corners, transfer_matrices
 
 def ctmrg_coarse_graining(dim, weight, weight_imp, cns, tms, num_of_steps = 15):
+    'Return energy, which is obtained by CTMRG coarse graining scheme (Orus and Vidal\s method)'
     def tuple_rotation(c1, c2, c3, c4):
         """Returns new tuple shifted to left by one place."""
         return c2.clone(), c3.clone(), c4.clone(), c1.clone()
@@ -203,7 +208,9 @@ def ctmrg_coarse_graining(dim, weight, weight_imp, cns, tms, num_of_steps = 15):
         c1t1c2t4w = cyx.Contract(cyx.Contract(c1t1c2, t4), weight_imp)
         c1t1c2t4wt2c4 = cyx.Contract(cyx.Contract(c1t1c2t4w, t2), c4)
         expect = cyx.Contract(cyx.Contract(c1t1c2t4wt2c4, t3), c3).item()
-        ### other method using ncon.py
+        ### Other method using ncon.py
+        ### ncon.py can contract multiple tensors in a single operation, and it can also 
+        ### find the optimized contraction steps.
         #all_mat = [a.clone() for a in all_mat]
         #all_mat  = [mat.get_block().numpy() for mat in all_mat]
 
