@@ -1,5 +1,5 @@
 # Kitaev_Cytnx
-Solving Kitaev honeycomb model using tensor network based on Cytnx
+Solving Kitaev honeycomb model using tensor network algorithm based on Cytnx.
 
 Ref:
 
