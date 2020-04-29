@@ -1,7 +1,7 @@
 # Kitaev_Cytnx
 Solving Kitaev honeycomb model using tensor network algorithm based on Cytnx.
 
-Ref:
+References:
 
 1.https://github.com/josephinius/Kitaev
 
