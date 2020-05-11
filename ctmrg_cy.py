@@ -3,7 +3,7 @@ import numpy as np
 from scipy import linalg
 import constants_cy
 import ite_cy
-#from ncon import ncon
+from ncon import ncon
 ##### Import cytnx module
 import sys
 sys.path.append("/usr/local/")
@@ -114,7 +114,7 @@ def create_w_imp_cns_tms(ten_a, ten_b, l_three_dir):
 
     return weight, weight_imp, corners, transfer_matrices
 
-def ctmrg_coarse_graining(dim, weight, weight_imp, cns, tms, num_of_steps = 15):
+def ctmrg_coarse_graining(dim, weight, weight_imp, cns, tms, num_of_steps = 35):
     'Return energy, which is obtained by CTMRG coarse graining scheme (Orus and Vidal\s method)'
     def tuple_rotation(c1, c2, c3, c4):
         """Returns new tuple shifted to left by one place."""
@@ -129,8 +129,8 @@ def ctmrg_coarse_graining(dim, weight, weight_imp, cns, tms, num_of_steps = 15):
     energy = 0
     energy_mem = -1
     steps = 0
-    while abs(energy - energy_mem) > 1.E-6 and steps < num_of_steps:
-        for i in range(4):
+    while abs(energy - energy_mem) > 1.E-12 and steps < num_of_steps:
+        for i in range(4): # four direction
             ## c1t1
             c1_tmp = c1; t1_tmp = t1
             c1_tmp.set_labels([-1,1]); t1_tmp.set_labels([0,2,-1]);
@@ -161,9 +161,12 @@ def ctmrg_coarse_graining(dim, weight, weight_imp, cns, tms, num_of_steps = 15):
             c4t3_tmp1.set_labels([1,-1]); c4t3_tmp2.set_labels([0,-1])
             m1 = sort_label(cyx.Contract(c1t1_tmp1, c1t1_tmp2.Conj())).get_block().numpy()
             m2 = sort_label(cyx.Contract(c4t3_tmp1, c4t3_tmp2.Conj())).get_block().numpy()
-            w, u = np.linalg.eigh((m1 + m2 + m1.T + m2.T)/2)
+            w, u = np.linalg.eigh((m1 + m2))
+            #test = (m1 + m2) - np.conj((m1 + m2).T)
+            #print(linalg.norm(test))
             u = np.fliplr(u)
-            u = cyx.CyTensor(cytnx.from_numpy(np.conj(u[:, :dim])), 0)        
+            #u = cyx.CyTensor(cytnx.from_numpy(np.conj(u[:, :dim])), 0)        
+            u = cyx.CyTensor(cytnx.from_numpy((u[:, :dim])), 0)        
             u1 = u
             c1t1.set_labels([0,-1]); u1.set_labels([-1,1])
             c1 = sort_label(cyx.Contract(c1t1,u1))
@@ -183,9 +186,14 @@ def ctmrg_coarse_graining(dim, weight, weight_imp, cns, tms, num_of_steps = 15):
 
         cns = [c1, c2, c3, c4]; tms = [t1, t2, t3, t4]
         for j in range(4):
-            norm = cyx.Contract(cns[j], cns[j]).item()**0.5
+            norm = cyx.Contract(cns[j], cns[j].Conj()).item()**0.5
+            #norm = np.max(cytnx.linalg.Abs(cns[j].get_block()).numpy())
             cns[j] = cns[j]/norm
-            norm = cyx.Contract(tms[j], tms[j]).item()**0.5
+            #print(norm)
+            norm = cyx.Contract(tms[j], tms[j].Conj()).item()**0.5
+            #norm = np.max(cytnx.linalg.Abs(tms[j].get_block()).numpy())
+            #test = np.max(cytnx.linalg.Abs(tms[j].get_block()).numpy())
+            #tms[j]= tms[j]/test
             tms[j] = tms[j]/norm 
         c1, c2, c3, c4 = cns
         t1, t2, t3, t4 = tms

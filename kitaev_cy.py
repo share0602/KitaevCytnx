@@ -14,7 +14,7 @@ from cytnx import cytnx_extension as cyx
 
 
 spin = '1'
-D = 4; m = 20
+D = 4; m = 16
 tau = 0.01
 refresh = 100; ITEsteps = 5*refresh
 d = constants_cy.spin_to_physical_dimension(spin)
