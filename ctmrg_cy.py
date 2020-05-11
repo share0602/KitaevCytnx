@@ -19,7 +19,7 @@ def sort_label(A):
     else:
         raise ValueError('A.labels() is not equal list(np.sort(label))')
 
-def create_w_imp_cns_tms(ten_a, ten_b, l_three_dir):
+def create_w_imp_cns_tms(ham,ten_a, ten_b, l_three_dir):
     'Create weight, impurity, cns, and tms with the imput ten_a, ten_b, l_three_dir'
     D = l_three_dir[0].shape()[0]
     for i in ('weight', 'impurity'):
@@ -67,16 +67,21 @@ def create_w_imp_cns_tms(ten_a, ten_b, l_three_dir):
             d = ten_a.shape()[0]
             spin = constants_cy.physical_dimension_to_spin(d)
             sx,sy,sz,_ = constants_cy.Get_spin_operators(spin)
-            op1 = cyx.CyTensor(1j*sx.clone(), 0)
-            op2 = op1.clone()
-            op1.set_labels([-1,-15])
-            op2.set_labels([-2,-16])
+            H = ham[0] 
+            #H = - k *cytnx.linalg.Kron(sx, sx) - h * (cytnx.linalg.Kron(sz, one) + cytnx.linalg.Kron(one, sz)) / 2
+            H = H.reshape(d,d,d,d).permute(0,2,1,3)
+            H = cyx.CyTensor(H,0)
+            H.set_labels([-1,-15,-2,-16])
+            #op1 = cyx.CyTensor(1j*sx.clone(), 0)
+            #op2 = op1.clone()
+            #op1.set_labels([-1,-15])
+            #op2.set_labels([-2,-16])
             ten_a1.set_labels([-1,-3,-4,-5]); ten_b1.set_labels([-2,-6,-7,-8])
             ten_a2.set_labels([-15,-9,-10,-11]); ten_b2.set_labels([-16,-12,-13,-14])
             # ## Contract
             a1_xyz = cyx.Contract(cyx.Contract(cyx.Contract(ten_a1, lx1), ly_sqrt_a1), lz_sqrt_a1)
             b1_yz = cyx.Contract(cyx.Contract(ten_b1, ly_sqrt_b1), lz_sqrt_b1)
-            upper_half = cyx.Contract(cyx.Contract(cyx.Contract(a1_xyz, b1_yz), op1),op2)
+            upper_half = cyx.Contract(cyx.Contract(a1_xyz, b1_yz), H)
 
             a2_xyz = cyx.Contract(cyx.Contract(cyx.Contract(ten_a2, lx2), ly_sqrt_a2), lz_sqrt_a2)
             b2_yz = cyx.Contract(cyx.Contract(ten_b2, ly_sqrt_b2), lz_sqrt_b2)
@@ -114,7 +119,7 @@ def create_w_imp_cns_tms(ten_a, ten_b, l_three_dir):
 
     return weight, weight_imp, corners, transfer_matrices
 
-def ctmrg_coarse_graining(dim, weight, weight_imp, cns, tms, num_of_steps = 35):
+def ctmrg_coarse_graining(dim, weight, weight_imp, cns, tms, num_of_steps = 15):
     'Return energy, which is obtained by CTMRG coarse graining scheme (Orus and Vidal\s method)'
     def tuple_rotation(c1, c2, c3, c4):
         """Returns new tuple shifted to left by one place."""
@@ -129,7 +134,7 @@ def ctmrg_coarse_graining(dim, weight, weight_imp, cns, tms, num_of_steps = 35):
     energy = 0
     energy_mem = -1
     steps = 0
-    while abs(energy - energy_mem) > 1.E-12 and steps < num_of_steps:
+    while abs(energy - energy_mem) > 1.E-8 and steps < num_of_steps:
         for i in range(4): # four direction
             ## c1t1
             c1_tmp = c1; t1_tmp = t1

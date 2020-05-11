@@ -5,6 +5,7 @@ import constants_cy
 from tqdm import tqdm
 import ctmrg_cy # Used for create weight, impurity, cns, tms, and calculate energy
 import ite_cy  # Used for ITE (simple update)
+from args import args
 
 ##### Import cytnx module
 import sys
@@ -13,13 +14,20 @@ import cytnx
 from cytnx import cytnx_extension as cyx
 
 
-spin = '1'
-D = 4; m = 16
+spin = args.spin
+D = args.D; m = args.chi
+model = args.model
+h = args.hz
 tau = 0.01
-refresh = 100; ITEsteps = 5*refresh
+refresh = 200; ITEsteps = 10*refresh
 d = constants_cy.spin_to_physical_dimension(spin)
 sx, sy, sz, _ = constants_cy.Get_spin_operators(spin)
-
+if model == 'Kitaev':
+    Construct_hamiltonian = constants_cy.Construct_kitaev_hamiltonian
+elif model == 'Heisenberg':
+    Construct_hamiltonian = constants_cy.Construct_heisenberg_hamiltonian
+elif model == 'TFIM':
+    Construct_hamiltonian = constants_cy.Construct_ising_hamiltonian
 ##### Prepare initial magnetized state
 ten_a = cytnx.zeros((d, 1, 1, 1))
 ten_a = ten_a.astype(cytnx.Type.ComplexDouble)
@@ -52,14 +60,14 @@ l_three_dir = [lx, lx.clone(), lx.clone()]
 # print(l_three_dir)
 
 ## construct ITE gate
-H = constants_cy.Construct_kitaev_hamiltonian(0, spin)
+H = Construct_hamiltonian(spin,h)
 u_gates = [cytnx.linalg.ExpH(-tau*hamiltonian).reshape(d, d, d, d) for hamiltonian in H]
 u_gates = [cyx.CyTensor(u,0) for u in u_gates ]
 
 print('spin:%s d:%d D:%d m:%d' %(spin, d, D, m))
 
 ## Calculate LG energy
-weight, weight_imp, cns, tms = ctmrg_cy.create_w_imp_cns_tms(ten_a, ten_b, l_three_dir)
+weight, weight_imp, cns, tms = ctmrg_cy.create_w_imp_cns_tms(H,ten_a, ten_b, l_three_dir)
 weight.reshape_(2**2, 2**2, 2**2, 2**2)
 weight_imp.reshape_(2**2, 2**2, 2**2, 2**2)
 energy = ctmrg_cy.ctmrg_coarse_graining(24, weight, weight_imp, cns, tms)
@@ -71,7 +79,7 @@ for i in range(ITEsteps):
     print(l_three_dir[0].get_block().numpy())
     print(l_three_dir[1].get_block().numpy())
     print(l_three_dir[2].get_block().numpy())
-    weight, weight_imp, cns, tms = ctmrg_cy.create_w_imp_cns_tms(ten_a, ten_b, l_three_dir)
+    weight, weight_imp, cns, tms = ctmrg_cy.create_w_imp_cns_tms(H,ten_a, ten_b, l_three_dir)
     weight.reshape_(D**2, D**2, D**2, D**2)
     weight_imp.reshape_(D**2, D**2, D**2, D**2)
     energy = ctmrg_cy.ctmrg_coarse_graining(m, weight, weight_imp, cns, tms)

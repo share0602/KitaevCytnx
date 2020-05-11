@@ -83,13 +83,28 @@ def Create_loop_gas_operator(spin):
     return Q_LG
 
 
-def Construct_kitaev_hamiltonian(h, spin, k=1.):
+def Construct_kitaev_hamiltonian(spin, h=0.,k=1.):
     """Returns list of two-site Hamiltonian in [x, y, z]-direction for Kitaev model"""
     
     sx, sy, sz, one = Get_spin_operators(spin)
     hamiltonian = [-k*cytnx.linalg.Kron(sx,sx), -k*cytnx.linalg.Kron(sy,sy), -k*cytnx.linalg.Kron(sz,sz)]
     
     return hamiltonian
+
+def Construct_heisenberg_hamiltonian(spin, h=0., k=1.):
+    """Returns list of two-site Hamiltonian in [x, y, z]-direction for Heisenberg model"""
+    
+    sx, sy, sz, one = Get_spin_operators(spin)
+    hamiltonian = [k*cytnx.linalg.Kron(sx,sx)+k*cytnx.linalg.Kron(sy,sy)+k*cytnx.linalg.Kron(sz,sz)]*3
+    return hamiltonian
+
+def Construct_ising_hamiltonian(spin, h=3.1, k=1.):
+    """Returns list of two-site Hamiltonian in [x, y, z]-direction for Ising model"""
+    
+    sx, sy, sz, one = Get_spin_operators(spin)
+    hamiltonian = - k *cytnx.linalg.Kron(sx, sx) - h * (cytnx.linalg.Kron(sz, one) + cytnx.linalg.Kron(one, sz)) / 2
+    return [hamiltonian]*3
+
 def become_LGstate(ten_a, Q_LG):
     ten_a.set_labels([-1,2,4,6])
     Q_LG.set_labels([0,-1,1,3,5]) 
