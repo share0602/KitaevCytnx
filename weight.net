@@ -1,0 +1,18 @@
+a1: ;-1,-3,-4,-5
+b1: ;-2,-6,-7,-8
+a2: ;-1,-9,-10,-11
+b2: ;-2,-12,-13,-14
+lx1: ;-3,-6
+lx2: ;-9,-12
+ly_sqrt_a1: ;-4,4
+ly_sqrt_b1: ;-7,0
+ly_sqrt_a2: ;-10,5
+ly_sqrt_b2: ;-13,1
+lz_sqrt_a1: ;-5,6
+lz_sqrt_b1: ;-8,2
+lz_sqrt_a2: ;-11,7
+lz_sqrt_b2: ;-14,3
+
+TOUT: ;0,1,2,3,4,5,6,7
+ORDER: ((((a1,lx1),ly_sqrt_a1), lz_sqrt_a1),  ((b1,ly_sqrt_b1),lz_sqrt_b1))  ,  ((((a2,lx2),ly_sqrt_a2),lz_sqrt_a2), ((b2,ly_sqrt_b2), lz_sqrt_b2) )
+

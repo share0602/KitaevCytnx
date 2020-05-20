@@ -1,8 +1,7 @@
 import numpy as np
 from scipy import linalg
 
-import sys
-sys.path.append("/usr/local/")
+from setting import *
 import cytnx
 from cytnx import cytnx_extension as cyx
 
@@ -29,32 +28,46 @@ def Lambdas_rotate(lam):
 
 def simple_update(ten_a, ten_b, l_three_dir, D, u_gates):
     for i in range(3):
-        u_gates[i].set_labels([-1,-5,0,3])
+        #u_gates[i].set_labels([-1,-5,0,3])
         ## first set_labels, which will be used for contraction later
-        ten_a.set_labels([-1,-2,-3,-4]);
-        ten_b.set_labels([-5,-6,-7,-8]);
+        #ten_a.set_labels([-1,-2,-3,-4]);
+        #ten_b.set_labels([-5,-6,-7,-8]);
         lx = l_three_dir[0].clone()
-        lx.set_labels([-2,-6])
+        #lx.set_labels([-2,-6])
         
         ## those will contract with ten_a later
         ly_a = l_three_dir[1].clone()
-        ly_a.set_labels([1,-3])
+        #ly_a.set_labels([1,-3])
         lz_a = l_three_dir[2].clone()
-        lz_a.set_labels([2,-4])
+        #lz_a.set_labels([2,-4])
         
         ## those will contract with ten_b later
         ly_b = l_three_dir[1].clone()
-        ly_b.set_labels([4,-7])
+        #ly_b.set_labels([4,-7])
         lz_b = l_three_dir[2].clone()
-        lz_b.set_labels([5,-8])
+        #lz_b.set_labels([5,-8])
 
         # pair contraction + apply gate
-        ten_axyz = cyx.Contract(cyx.Contract(cyx.Contract(ten_a, lx), ly_a),lz_a)
-        ten_byz = cyx.Contract(cyx.Contract(ten_b, ly_b), lz_b)
-        pair_ten = cyx.Contract(ten_axyz, ten_byz)
-        apply_ten = cyx.Contract(pair_ten, u_gates[i])
+        #ten_axyz = cyx.Contract(cyx.Contract(cyx.Contract(ten_a, lx), ly_a),lz_a)
+        #ten_byz = cyx.Contract(cyx.Contract(ten_b, ly_b), lz_b)
+        #pair_ten = cyx.Contract(ten_axyz, ten_byz)
+        #apply_ten = cyx.Contract(pair_ten, u_gates[i])
         #apply_ten.permute_([4,0,1,5,2,3]) # Not trivial, please use print_diagram()
-        apply_ten = sort_label(apply_ten)
+        #apply_ten = sort_label(apply_ten)
+        anet = cyx.Network("ite.net")
+        anet.PutCyTensor("u",u_gates[i])
+        anet.PutCyTensor("a",ten_a)
+        anet.PutCyTensor("b",ten_b)
+        anet.PutCyTensor("lx",lx)
+        anet.PutCyTensor("ly_a",ly_a)
+        anet.PutCyTensor("ly_b",ly_b)
+        #print('test')
+        #lz_a.print_diagram()
+        #print('test')
+        anet.PutCyTensor("lz_a",lz_a)
+        anet.PutCyTensor("lz_b",lz_b)
+        apply_ten = anet.Launch()
+        
         apply_ten.set_Rowrank(3)
         # apply_ten.print_diagram()
 
@@ -71,6 +84,7 @@ def simple_update(ten_a, ten_b, l_three_dir, D, u_gates):
 
 
         ten_a = cyx.Contract(cyx.Contract(ten_a, ly_a_inv), lz_a_inv)
+        ten_a.permute_([0,1,2,3], by_label = True)
         ten_a.set_Rowrank(0)
         ly_b_inv = 1./ly_b
         lz_b_inv = 1./lz_b
@@ -78,10 +92,14 @@ def simple_update(ten_a, ten_b, l_three_dir, D, u_gates):
         lz_b_inv.set_labels([3,-2])
         ten_b = cyx.Contract(cyx.Contract(ten_b, ly_b_inv), lz_b_inv)
         #ten_b.permute_([1,0,2,3]) ## not so trivial, please use print_diagram()
-        ten_b = sort_label(ten_b)
+        # ten_b = sort_label(ten_b)
+        # ten_b.print_diagram()
+        ten_b.permute_([0,1,2,3], by_label = True)
+        # ten_b.print_diagram()
         ten_b.set_Rowrank(0)
 
         Norm = sum(lx.get_block().numpy())
+        lx.set_Rowrank(0)
         l_three_dir[0] = lx/Norm
         l_three_dir = Lambdas_rotate(l_three_dir)
         ten_a = Tensor_rotate(ten_a)

@@ -1,0 +1,49 @@
+graph "weight.net" {
+	size="6,5"
+	node [shape=circle]
+	a1
+	b1
+	a2
+	b2
+	lx1
+	lx2
+	ly_sqrt_a1
+	ly_sqrt_b1
+	ly_sqrt_a2
+	ly_sqrt_b2
+	lz_sqrt_a1
+	lz_sqrt_b1
+	lz_sqrt_a2
+	lz_sqrt_b2
+	node [shape=plaintext]
+	4
+	0
+	5
+	1
+	6
+	2
+	7
+	3
+	b2 -- lz_sqrt_b2 [label=-14]
+	b2 -- ly_sqrt_b2 [label=-13]
+	b2 -- lx2 [label=-12]
+	a2 -- lz_sqrt_a2 [label=-11]
+	a2 -- ly_sqrt_a2 [label=-10]
+	a2 -- lx2 [label=-9]
+	b1 -- lz_sqrt_b1 [label=-8]
+	b1 -- ly_sqrt_b1 [label=-7]
+	b1 -- lx1 [label=-6]
+	a1 -- lz_sqrt_a1 [label=-5]
+	a1 -- ly_sqrt_a1 [label=-4]
+	a1 -- lx1 [label=-3]
+	b1 -- b2 [label=-2]
+	a1 -- a2 [label=-1]
+	4 -- ly_sqrt_a1
+	0 -- ly_sqrt_b1
+	5 -- ly_sqrt_a2
+	1 -- ly_sqrt_b2
+	6 -- lz_sqrt_a1
+	2 -- lz_sqrt_b1
+	7 -- lz_sqrt_a2
+	3 -- lz_sqrt_b2
+}

@@ -1,0 +1,26 @@
+graph "all.net" {
+	size="6,5"
+	node [shape=circle]
+	c1
+	t1
+	c2
+	t2
+	c3
+	t3
+	c4
+	t4
+	w
+	node [shape=plaintext]
+	c1 -- t1 [label=0]
+	t1 -- c2 [label=1]
+	c1 -- t4 [label=2]
+	t1 -- w [label=3]
+	c2 -- t2 [label=4]
+	t4 -- w [label=5]
+	t2 -- w [label=6]
+	c4 -- t4 [label=7]
+	t3 -- w [label=8]
+	t2 -- c3 [label=9]
+	t3 -- c4 [label=10]
+	c3 -- t3 [label=11]
+}

@@ -8,8 +8,7 @@ import ite_cy  # Used for ITE (simple update)
 from args import args
 
 ##### Import cytnx module
-import sys
-sys.path.append("/usr/local/")
+from setting import *
 import cytnx
 from cytnx import cytnx_extension as cyx
 
@@ -19,7 +18,7 @@ D = args.D; m = args.chi
 model = args.model
 h = args.hz
 tau = 0.01
-refresh = 200; ITEsteps = 10*refresh
+refresh = 100; ITEsteps = 5
 d = constants_cy.spin_to_physical_dimension(spin)
 sx, sy, sz, _ = constants_cy.Get_spin_operators(spin)
 if model == 'Kitaev':
@@ -28,20 +27,16 @@ elif model == 'Heisenberg':
     Construct_hamiltonian = constants_cy.Construct_heisenberg_hamiltonian
 elif model == 'TFIM':
     Construct_hamiltonian = constants_cy.Construct_ising_hamiltonian
+
 ##### Prepare initial magnetized state
 ten_a = cytnx.zeros((d, 1, 1, 1))
 ten_a = ten_a.astype(cytnx.Type.ComplexDouble)
 ten_b = cytnx.zeros((d, 1, 1, 1))
 ten_b = ten_b.astype(cytnx.Type.ComplexDouble)
-# w, v = linalg.eigh(-1*(sx + sy + sz).numpy())
-# state = v[:, 0] # eigenvector with the smallest eigenvalues
-# state = cytnx.from_numpy(state)
 w, v = cytnx.linalg.Eigh(-1*(sx + sy + sz))
 state = v[:, 0] # eigenvector with the smallest eigenvalues
-# state = cytnx.from_numpy(state)
-for i, x in enumerate(state):
-    ten_a[i,0,0,0] = x.clone()
-    ten_b[i,0,0,0] = x.clone()
+ten_a[:,0,0,0] = state;
+ten_b[:,0,0,0] = state;
 
 ####### Prepare initial LG state    
 Q_LG = constants_cy.Create_loop_gas_operator(spin)
@@ -51,6 +46,12 @@ ten_a = cyx.CyTensor(ten_a, 0);
 ten_b = cyx.CyTensor(ten_b, 0);
 ten_a = constants_cy.become_LGstate(ten_a, Q_LG)
 ten_b = constants_cy.become_LGstate(ten_b, Q_LG)
+# ten_a = np.random.randn(d,2,2,2)
+# ten_a = cytnx.from_numpy(ten_a)
+# ten_a = ten_a.astype(cytnx.Type.ComplexDouble)
+# ten_b = ten_a.clone()
+# ten_a = cyx.CyTensor(ten_a, 0);
+# ten_b = cyx.CyTensor(ten_b, 0);
 # ten_b.print_diagram()
 
 ## lambda x,y,z
@@ -71,7 +72,7 @@ weight, weight_imp, cns, tms = ctmrg_cy.create_w_imp_cns_tms(H,ten_a, ten_b, l_t
 weight.reshape_(2**2, 2**2, 2**2, 2**2)
 weight_imp.reshape_(2**2, 2**2, 2**2, 2**2)
 energy = ctmrg_cy.ctmrg_coarse_graining(24, weight, weight_imp, cns, tms)
-
+#exit(1)
 ## Do ITE and calculate energy
 for i in range(ITEsteps):
     for _ in tqdm(range(refresh)):
