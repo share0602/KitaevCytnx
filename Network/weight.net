@@ -15,4 +15,3 @@ lz_sqrt_b2: ;-14,3
 
 TOUT: ;0,1,2,3,4,5,6,7
 ORDER: ((((a1,lx1),ly_sqrt_a1), lz_sqrt_a1),  ((b1,ly_sqrt_b1),lz_sqrt_b1))  ,  ((((a2,lx2),ly_sqrt_a2),lz_sqrt_a2), ((b2,ly_sqrt_b2), lz_sqrt_b2) )
-

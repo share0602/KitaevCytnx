@@ -54,7 +54,7 @@ def simple_update(ten_a, ten_b, l_three_dir, D, u_gates):
         #apply_ten = cyx.Contract(pair_ten, u_gates[i])
         #apply_ten.permute_([4,0,1,5,2,3]) # Not trivial, please use print_diagram()
         #apply_ten = sort_label(apply_ten)
-        anet = cyx.Network("ite.net")
+        anet = cyx.Network("Network/ite.net")
         anet.PutCyTensor("u",u_gates[i])
         anet.PutCyTensor("a",ten_a)
         anet.PutCyTensor("b",ten_b)

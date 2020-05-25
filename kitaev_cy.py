@@ -1,3 +1,4 @@
+import time
 import copy
 import numpy as np
 from scipy import linalg
@@ -12,6 +13,7 @@ from setting import *
 import cytnx
 from cytnx import cytnx_extension as cyx
 
+start = time.time()
 
 spin = args.spin
 D = args.D; m = args.chi
@@ -85,3 +87,5 @@ for i in range(ITEsteps):
     weight_imp.reshape_(D**2, D**2, D**2, D**2)
     energy = ctmrg_cy.ctmrg_coarse_graining(m, weight, weight_imp, cns, tms)
 
+end = time.time()
+print(end-start)

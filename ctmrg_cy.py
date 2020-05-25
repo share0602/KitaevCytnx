@@ -61,7 +61,7 @@ def create_w_imp_cns_tms(ham,ten_a, ten_b, l_three_dir):
             # weight = cyx.Contract(upper_half, lower_half.Conj())
             # weight = sort_label(weight)
             # weight1 = weight.clone().get_block().numpy()
-            anet = cyx.Network("weight.net")
+            anet = cyx.Network("Network/weight.net")
             # lz_sqrt_a1.print_diagram()
             anet.PutCyTensor("a1", ten_a1); anet.PutCyTensor("b1", ten_b1);
             anet.PutCyTensor("a2", ten_a2.Conj()); anet.PutCyTensor("b2", ten_b2.Conj());
@@ -70,7 +70,7 @@ def create_w_imp_cns_tms(ham,ten_a, ten_b, l_three_dir):
             anet.PutCyTensor("ly_sqrt_a2", ly_sqrt_a2.Conj()); anet.PutCyTensor("ly_sqrt_b2", ly_sqrt_b2.Conj());
             anet.PutCyTensor("lz_sqrt_a1", lz_sqrt_a1); anet.PutCyTensor("lz_sqrt_b1", lz_sqrt_b1);
             anet.PutCyTensor("lz_sqrt_a2", lz_sqrt_a2.Conj()); anet.PutCyTensor("lz_sqrt_b2", lz_sqrt_b2.Conj());
-            weight = anet.Launch()
+            weight = anet.Launch(optimal = True)
             # weight2 = weight.clone().get_block().numpy()
             # print(linalg.norm(weight1-weight2))
         elif i == 'impurity':
@@ -101,7 +101,7 @@ def create_w_imp_cns_tms(ham,ten_a, ten_b, l_three_dir):
             #
             # weight_imp = cyx.Contract(upper_half, lower_half.Conj())
             # weight_imp = sort_label(weight_imp)
-            anet = cyx.Network("impurity.net")
+            anet = cyx.Network("Network/impurity.net")
             # lz_sqrt_a1.print_diagram()
             anet.PutCyTensor("a1", ten_a1);
             anet.PutCyTensor("b1", ten_b1);
@@ -118,7 +118,7 @@ def create_w_imp_cns_tms(ham,ten_a, ten_b, l_three_dir):
             anet.PutCyTensor("lz_sqrt_a2", lz_sqrt_a2.Conj());
             anet.PutCyTensor("lz_sqrt_b2", lz_sqrt_b2.Conj());
             anet.PutCyTensor('H', H)
-            weight_imp = anet.Launch()
+            weight_imp = anet.Launch(optimal = True)
             #weight_imp.reshape_(D**2, D**2, D**2, D**2)
         w = weight.get_block().numpy()
         # print(w.shape)
@@ -197,12 +197,12 @@ def ctmrg_coarse_graining(dim_cut, weight, weight_imp, cns, tms, num_of_steps = 
         return u_up, u_down
     ############## Corboz's coarse graining
     def corner_extend_corboz(c1, t1, t4, w):
-        anet = cyx.Network("extend_corner_corboz.net")
+        anet = cyx.Network("Network/extend_corner_corboz.net")
         anet.PutCyTensor("c1", c1)
         anet.PutCyTensor("t1", t1)
         anet.PutCyTensor("t4", t4)
         anet.PutCyTensor("w", w)
-        c1_new = anet.Launch()
+        c1_new = anet.Launch(optimal = True)
         dim1 = c1_new.shape()[0] * c1_new.shape()[1]
         dim2 = c1_new.shape()[2] * c1_new.shape()[3]
         c1_new = c1_new.reshape(dim1, dim2)
@@ -290,7 +290,7 @@ def ctmrg_coarse_graining(dim_cut, weight, weight_imp, cns, tms, num_of_steps = 
 
         ####################### Measurement
         ## build network (see plotnet.py) 
-        anet = cyx.Network("all.net")
+        anet = cyx.Network("Network/measurement.net")
         anet.PutCyTensor("c1",c1)
         anet.PutCyTensor("c2",c2)
         anet.PutCyTensor("c3",c3)
@@ -300,12 +300,12 @@ def ctmrg_coarse_graining(dim_cut, weight, weight_imp, cns, tms, num_of_steps = 
         anet.PutCyTensor("t3",t3)
         anet.PutCyTensor("t4",t4)
         anet.PutCyTensor("w",weight)
-        norm = anet.Launch().item()
+        norm = anet.Launch(optimal = True).item()
 
         ## expect (reuse network)
         anet.PutCyTensor("w",weight_imp);
         
-        expect = anet.Launch().item()
+        expect = anet.Launch(optimal = True).item()
         ### Other method using ncon.py
         ### ncon.py can contract multiple tensors in a single operation, and it can also 
         ### find the optimized contraction steps.
@@ -326,7 +326,7 @@ def ctmrg_coarse_graining(dim_cut, weight, weight_imp, cns, tms, num_of_steps = 
         #print(norm)
         energy = 3/2*expect/norm.real
     
-        print('Coarse-graining(CTMRG) steps:%d'%steps,'energy = ',energy )
+        print('Coarse-graining(CTMRG) steps:%d'%(steps+1),'energy = ',energy )
         steps+=1
     if steps < num_of_steps-1: print('Converge!')
     return energy
